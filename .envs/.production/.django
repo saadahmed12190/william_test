@@ -1,0 +1,57 @@
+# General
+# ------------------------------------------------------------------------------
+# DJANGO_READ_DOT_ENV_FILE=True
+DJANGO_SETTINGS_MODULE=config.settings.production
+DJANGO_SECRET_KEY=EzbwYcDRR2yMQJpcnD8xBsvAXn0p3G3aof1YerxD5zzCPsJiSpzbHUrtLbDIEqSj
+DJANGO_ADMIN_URL=rS5nsnEyrXkWwDyzXo1nQgvd6MW5V1KP/
+DJANGO_ALLOWED_HOSTS=.mirari-dev-env.xyz
+
+
+# Security
+# ------------------------------------------------------------------------------
+# TIP: better off using DNS, however, redirect is OK too
+DJANGO_SECURE_SSL_REDIRECT=False
+
+# Email
+# ------------------------------------------------------------------------------
+DJANGO_SERVER_EMAIL=
+
+
+# AWS
+# ------------------------------------------------------------------------------
+DJANGO_AWS_ACCESS_KEY_ID=AKIAS75NJIEVE5ICEPUM
+DJANGO_AWS_SECRET_ACCESS_KEY=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
+DJANGO_AWS_STORAGE_BUCKET_NAME=
+DJANGO_AWS_S3_REGION_NAME=us-east-1
+
+# django-allauth
+# ------------------------------------------------------------------------------
+DJANGO_ACCOUNT_ALLOW_REGISTRATION=True
+
+# Gunicorn
+# ------------------------------------------------------------------------------
+WEB_CONCURRENCY=4
+
+# Sentry
+# ------------------------------------------------------------------------------
+SENTRY_DSN=https://aa928fd5efa51ef6a52c59a89d9f7411@o4506837432795136.ingest.sentry.io/4506837437317120
+
+
+# Redis
+# ------------------------------------------------------------------------------
+REDIS_URL=redis://redis:6379/0
+
+# Celery
+# ------------------------------------------------------------------------------
+
+# Flower
+CELERY_FLOWER_USER=KBgTfQaBYStxfbDhQRGQqYbyrKrmNBZu
+CELERY_FLOWER_PASSWORD=zqsdmg753xhzxYcRR9SjqUmz950z6I1RFXOBhj7RikVsOcc8ertLX8ec7mdc8pd2
+
+
+
+POSTGRES_HOST=database-mindtrade-backend.ch0w4ueiirsy.eu-north-1.rds.amazonaws.com
+POSTGRES_PORT=5432
+POSTGRES_DB=mindtrade
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=WYky^9MArRbt#W
