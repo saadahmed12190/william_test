@@ -1,66 +1,69 @@
-name: Deploy to ECR
+name: Build and Push Docker Image to ECR
 
 on:
- 
   push:
-    branches: [ master ]
+    branches:
+      - main
+
+env:
+  AWS_REGION : "eu-north-1"
+  AWS_ACCOUNT_ID: 205984973098
+
 permissions:
   id-token: write
   contents: read
 
 jobs:
   build:
-    
-    name: Build Image
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+
     steps:
-    - name: Installing ECS deploy
-      run: | 
-         pip install ecs-deploy
+      - name: Git clone the repository
+        uses: actions/checkout@v3
+      
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v1.7.0
+        with:
+          role-to-assume: arn:aws:iam::${{env.AWS_ACCOUNT_ID}}:role/github-assume-role
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ env.AWS_REGION }}
 
-   
-    - name: Check out code
-      uses: actions/checkout@v2
-
-    
-    - name: Configure AWS credentials
-      uses: aws-actions/configure-aws-credentials@v1
-      with:
-          role-to-assume: arn:aws:iam::205984973098:role/github-assume-role
-          aws-region: eu-north-1
-
-    - name: Login to Amazon ECR
-      id: login-ecr
-      uses: aws-actions/amazon-ecr-login@v1
-
-
-
-    - name: Build and push Docker images
-      env:
-        AWS_REGION: eu-north-1
-      run: |
-        docker-compose -f production.yml up
-
-
-        
-    # - name: Tag and Push
-    #   env:
-    #     ECR_REPOSITORY_FOR_CELERYBEAT: celerybeat
-    #     TAG: ${{ github.run_number }}
-    #     ACCOUNT_URL: 489994096722.dkr.ecr.us-east-1.amazonaws.com
-    #   run: |
-    #     docker tag $ECR_REPOSITORY:latest $ACCOUNT_URL/$ECR_REPOSITORY:$TAG
-    #     docker push $ACCOUNT_URL/$ECR_REPOSITORY:$TAG
-
-
-    # - name: Deploy Amazon ECS task definition
-    #   env:
-    #     ECR_REPOSITORY: saad
-    #     ECS_CLUSTER: saad-ecs
-    #     ECS_SERVICE: saad-test-service
-    #     ECS_CONTAINER: saad-test-container
-    #     REGION: us-east-1
-    #     ACCOUNT_URL: 489994096722.dkr.ecr.us-east-1.amazonaws.com
-    #     TAG: ${{ github.run_number }}
-    #   run: |
-    #     ecs deploy $ECS_CLUSTER $ECS_SERVICE --region $REGION --image $ECS_CONTAINER $ACCOUNT_URL/$ECR_REPOSITORY:$TAG
+      - name: Building Images
+        run: |
+          docker-compose -f production.yml build
+      
+      - name: Pushing Traefik
+        run: |
+          ECR_REPOSITORY_NAME="mindtrade_traefik"
+          LOCAL_TAG="templatebackend_production_traefik"
+          IMAGE_TAG="latest"
+          aws ecr get-login-password --region ${{env.AWS_REGION}} | docker login --username AWS --password-stdin ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com
+          docker tag $LOCAL_TAG:latest ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+          docker push ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+      
+      - name: Pushing Django
+        run: |
+          ECR_REPOSITORY_NAME="mindtrade_django"
+          LOCAL_TAG="templatebackend_production_django"
+          IMAGE_TAG="latest"
+          aws ecr get-login-password --region ${{env.AWS_REGION}} | docker login --username AWS --password-stdin ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com
+          docker tag $LOCAL_TAG:latest ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+          docker push ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+      
+      - name: Pushing Celery Worker
+        run: |
+          ECR_REPOSITORY_NAME="mindtrade_celeryworker"
+          LOCAL_TAG="templatebackend_production_celeryworker"
+          IMAGE_TAG="latest"
+          aws ecr get-login-password --region ${{env.AWS_REGION}} | docker login --username AWS --password-stdin ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com
+          docker tag $LOCAL_TAG:latest ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+          docker push ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+      
+      - name: Pushing Celery Beat
+        run: |
+          ECR_REPOSITORY_NAME="mindtrade_celerybeat"
+          LOCAL_TAG="templatebackend_production_celerybeat"
+          IMAGE_TAG="latest"
+          aws ecr get-login-password --region ${{env.AWS_REGION}} | docker login --username AWS --password-stdin ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com
+          docker tag $LOCAL_TAG:latest ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
+          docker push ${{env.AWS_ACCOUNT_ID}}.dkr.ecr.${{env.AWS_REGION}}.amazonaws.com/$ECR_REPOSITORY_NAME:$IMAGE_TAG
